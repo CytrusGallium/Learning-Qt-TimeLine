@@ -14,6 +14,8 @@
 #include <QPoint>
 #include <QMouseEvent>
 #include <QGraphicsSceneMouseEvent>
+#include <QDate>
+#include <QRandomGenerator>
 
 namespace Ui {
 class MainWindow;
@@ -33,6 +35,7 @@ private slots:
 
 private:
     void GetTimeLines();
+    void GetEvents();
 
 private:
     Ui::MainWindow *ui;
@@ -40,6 +43,7 @@ private:
     QNetworkRequest request;
     QString Session_ID;
     QMessageBox msgBox;
+    QString lastHttpRequestIdentifier;
 };
 
 #endif // MAINWINDOW_H

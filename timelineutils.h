@@ -27,9 +27,6 @@ class TimeLineEventMark : QObject
             moment = ParamMoment;
             scene = ParamScene;
 
-            dot = ParamScene->addEllipse(0,0,8,8);
-            label = ParamScene->addText(ParamName);
-
             secondsSinceYearZero = moment.date().year() * 364.75 * 24 * 3600
                                  + moment.date().month() * 30 * 24 * 3600
                                  + moment.date().day() * 24 * 3600
@@ -37,6 +34,14 @@ class TimeLineEventMark : QObject
                                  + moment.time().minute() * 60
                                  + moment.time().second();
 
+            int min = -300;
+            int max = +300;
+            int randomY = rand() % min + max;
+
+            dot = ParamScene->addEllipse(secondsSinceYearZero/10000000,randomY,8,8);
+            label = ParamScene->addText(ParamName);
+            label->setX(secondsSinceYearZero/10000000);
+            label->setY(randomY);
 
         }
 };

@@ -11,7 +11,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->removeTab(1);
     ui->tabWidget->removeTab(1);
 
-
     QGraphicsView *view = ui->timeLineGraphicsView;
     QGraphicsScene *scene = new QGraphicsScene(view);
     scene->setBackgroundBrush(Qt::lightGray);
@@ -65,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 GetTimeLines();
             }
         }
-        else if (type == "EntityGrid")
+        else if (type == "EntityGrid" && lastHttpRequestIdentifier == "GetTimeLines")
         {
             map<string, string> json = ParseJson(answer.toLocal8Bit().constData());
             map<string, string> json_entities = ParseJson(json.at("Entities"));
@@ -97,6 +96,47 @@ MainWindow::MainWindow(QWidget *parent) :
             //msgBox.setText(QString::fromStdString(s));
             //msgBox.exec();
         }
+        else if (type == "EntityGrid" && lastHttpRequestIdentifier == "GetEvents")
+        {
+            //qDebug() << answer;
+
+            ui->tabWidget->addTab(ui->tabTimeLine, "Timeline Viewer");
+
+            map<string, string> json = ParseJson(answer.toLocal8Bit().constData());
+            map<string, string> json_entities = ParseJson(json.at("Entities"));
+            int count = json_entities.size();
+
+            /*
+            ui->tableTimeLine->setRowCount(count);
+            ui->tableTimeLine->setColumnCount(1);
+            QStringList labels;
+            labels.insert(0, "Timeline(s)");
+            ui->tableTimeLine->setHorizontalHeaderLabels(labels);
+            */
+
+            for (int i = 1; i<=count; i++)
+            {
+                map<string, string> json_entities_solo = ParseJson(json_entities.at(to_string(i)));
+
+                string eventNameString = json_entities_solo.at("PrimaryInfo");
+                string eventDateString = json_entities_solo.at("SecondaryInfo");
+                string eventImportanceString = json_entities_solo.at("ThirdiaryInfo");
+
+                /*
+                qDebug() << QString::fromStdString(eventNameString);
+                qDebug() << QString::fromStdString(eventDateString);
+                qDebug() << QString::fromStdString(eventImportanceString);
+                */
+
+                QDate eventDateOnly = QDate::fromString(QString::fromStdString(eventDateString),"yyyy-MM-dd");
+
+                QString eventName = QString::fromStdString(eventNameString);
+                QDateTime eventDate(eventDateOnly, QTime(0, 0, 0));
+                qDebug() << eventDate;
+
+                TimeLineEventMark mark(eventName, 100, eventDate, scene);
+            }
+        }
 
         //qDebug() << answer;
     });
@@ -115,6 +155,7 @@ void MainWindow::on_btnOK_clicked()
     QString user = ui->edtUser->text();
     QString pass = ui->edtPass->text();
 
+    lastHttpRequestIdentifier = "Login";
     request.setUrl(QUrl("http://127.0.0.1/TimeLine/View/WispLogin.php?user="+user+"&pass="+pass+"&r=json"));
     manager->get(request);
 
@@ -123,7 +164,17 @@ void MainWindow::on_btnOK_clicked()
 void MainWindow::GetTimeLines()
 {
 
+    lastHttpRequestIdentifier = "GetTimeLines";
     request.setUrl(QUrl("http://127.0.0.1/TimeLine/View/WispEntityGrid.php?entity=timeline"));
+    manager->get(request);
+
+}
+
+void MainWindow::GetEvents()
+{
+
+    lastHttpRequestIdentifier = "GetEvents";
+    request.setUrl(QUrl("http://127.0.0.1/Timeline/view/WispEntityGrid.php?entity=event&r=json"));
     manager->get(request);
 
 }
@@ -137,6 +188,8 @@ void MainWindow::on_tableTimeLine_cellDoubleClicked(int row, int column)
     msgBox.exec();
     */
 
-    qDebug() << ui->tableTimeLine->itemAt(row, column)->text();
-    ui->tabWidget->addTab(ui->tabTimeLine, "Timeline viewer");
+    // qDebug() << ui->tableTimeLine->itemAt(row, column)->text();
+    // ui->tabWidget->addTab(ui->tabTimeLine, "Timeline viewer");
+
+    GetEvents();
 }
